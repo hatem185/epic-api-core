@@ -8,13 +8,13 @@
     "Invalid identification method for verification!": "طريقة التحقق غير صالحة!",
     "Invalid oauth app id!": "معرف تطبيق oauth غير صالح!",
     "User not found!": "المستخدم غير موجود!",
-    "Invalid credentials provided!": "تم تقديم بيانات اعتماد غير صالحة!",
-    "You have been blocked!": "لقد تم حظرك!",
+    "Invalid credentials provided!": "الرجاء التحقق من اسم المستخدم او كلمة مرور!",
+    "You have been blocked!": "لقد تم حظر حسابك, يرجى الاتصال بالدعم الفني!",
     "Cannot use an old password!": "لا يمكن استخدام كلمة مرور قديمة!",
     "Please provide a different email!": "يرجى تقديم بريد إلكتروني مختلف!",
     "Please provide a different phone!": "يرجى تقديم رقم هاتف مختلف!",
     "You didn't initiate a challenge or it is expired!": "لم تقم ببدء التحدي أو انتهت صلاحيته!",
     "Passkey credentials verification has failed!": "فشل التحقق من بيانات اعتماد مفتاح المرور!",
-    "Passkey is already enabled!": "مفتاح المرور ممكّن بالفعل!"
+    "Passkey is already enabled!": "مفتاح المرور تم تمكينه بالفعل!"
   }
 }

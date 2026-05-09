@@ -7,7 +7,7 @@ export const UsernameValidator = (t: TFunction) =>
         matchFailed: t("Please provide a valid username format!"),
       },
     })
-    .matches(/^\s*([A-Za-z0-9_]{3,29})\s*$/)
+    .matches({ regex: /^\s*([A-Za-z0-9_]{3,29})\s*$/ })
     .length(50)
     .custom(ctx => {
       if(typeof ctx.output !== "string")

@@ -34,7 +34,6 @@ import { EmailValidator, PhoneValidator } from "../utils/validators";
 
 import { useOauthApp } from "../context/OauthApp";
 
-import { DotMenu } from "../misc/DotMenu";
 import { ConsentFooter } from "../misc/ConsentFooter";
 import { PhoneField } from "../misc/PhoneField";
 
@@ -433,81 +432,63 @@ export const ContactsPage = () => {
                               }
                             };
 
-                            const MenuOptions = [
-                              {
-                                label: t("Verify"),
-                                onClick: verify,
-                                disabled: method.verified,
-                              },
-                              {
-                                label: t("Change"),
-                                onClick: () =>
-                                  setVerificationMethod(method.type),
-                                disabled: !Query.get("permit"),
-                              },
-                            ];
-
-                            const EnabledOptions = MenuOptions.filter(
-                              (_) => !_.disabled
-                            );
+                            const canVerify = !method.verified;
+                            const canChange = !!Query.get("permit");
 
                             return (
                               <React.Fragment key={index}>
                                 <ListItem
-                                  secondaryAction={
-                                    EnabledOptions.length > 1 && (
-                                      <DotMenu
-                                        id={`options-${index}`}
-                                        options={MenuOptions}
-                                        edge="end"
-                                        anchorOrigin={{
-                                          vertical: "bottom",
-                                          horizontal: "right",
-                                        }}
-                                        transformOrigin={{
-                                          vertical: "top",
-                                          horizontal: "right",
-                                        }}
-                                      />
-                                    )
-                                  }
+                                  alignItems="flex-start"
+                                  sx={{ flexDirection: "column", gap: 1, py: 1.5 }}
                                 >
-                                  <ListItemText
-                                    primary={
-                                      method.type.charAt(0).toUpperCase() +
-                                      method.type.slice(1)
-                                    }
-                                    secondary={method.maskedValue}
-                                  />
-
-                                  {method.verified ? (
-                                    <Chip
-                                      label={t("Verified")}
-                                      color="success"
-                                      variant="outlined"
-                                      size="small"
+                                  <Box sx={{ display: "flex", alignItems: "center", width: "100%", gap: 1 }}>
+                                    <ListItemText
+                                      sx={{ m: 0 }}
+                                      primary={
+                                        method.type.charAt(0).toUpperCase() +
+                                        method.type.slice(1)
+                                      }
+                                      secondary={method.maskedValue}
                                     />
-                                  ) : (
-                                    <Chip
-                                      label={t("Unverified")}
-                                      color="error"
-                                      variant="outlined"
-                                      size="small"
-                                      onClick={verify}
-                                    />
-                                  )}
-
-                                  {EnabledOptions.length < 2 && (
-                                    <Button
-                                      type="button"
-                                      variant="contained"
-                                      size="small"
-                                      style={{ marginLeft: "10px" }}
-                                      disabled={Loading}
-                                      onClick={EnabledOptions[0].onClick}
-                                    >
-                                      {EnabledOptions[0].label}
-                                    </Button>
+                                    {method.verified ? (
+                                      <Chip
+                                        label={t("Verified")}
+                                        color="success"
+                                        variant="outlined"
+                                        size="small"
+                                      />
+                                    ) : (
+                                      <Chip
+                                        label={t("Unverified")}
+                                        color="error"
+                                        variant="outlined"
+                                        size="small"
+                                      />
+                                    )}
+                                  </Box>
+                                  {(canVerify || canChange) && (
+                                    <Box sx={{ display: "flex", gap: 1 }}>
+                                      {canVerify && (
+                                        <Chip
+                                          label={t("Verify")}
+                                          color="primary"
+                                          variant="filled"
+                                          size="small"
+                                          onClick={verify}
+                                          disabled={Loading}
+                                        />
+                                      )}
+                                      {canChange && (
+                                        <Chip
+                                          label={t("Change")}
+                                          color="default"
+                                          variant="outlined"
+                                          size="small"
+                                          onClick={() => setVerificationMethod(method.type)}
+                                          disabled={Loading}
+                                        />
+                                      )}
+                                    </Box>
                                   )}
                                 </ListItem>
                                 {AvailableMethods.length > index + 1 && (
