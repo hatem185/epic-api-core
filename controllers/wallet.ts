@@ -366,10 +366,10 @@ export default class WalletController extends BaseController {
             databaseSession: session,
           });
 
-          const FeeBreakdown: TWalletFeeStructure =
+          const FeeBreakdown: TWalletFeeStructure | undefined =
             Payload.transactionDetails.feeStructure;
 
-          if (FeeBreakdown.breakdown instanceof Array) {
+          if (FeeBreakdown?.breakdown instanceof Array) {
             for (
               const { account, user, name, amount } of FeeBreakdown.breakdown
             ) {
@@ -491,6 +491,18 @@ export default class WalletController extends BaseController {
   })
   public transactions(route: IRoute) {
     // Define Query Schema
+
+    const excludeFromProjection = (
+      project: Record<string, number> | undefined,
+      excludeKeys: string[],
+    ): Record<string, number> => {
+      return project
+        ? Object.fromEntries(
+          Object.entries(project).filter(([key]) => !excludeKeys.includes(key)),
+        )
+        : Object.fromEntries(excludeKeys.map((key) => [key, 0]));
+    };
+
     const QuerySchema = e.deepCast(
       e.object(
         {
@@ -607,7 +619,17 @@ export default class WalletController extends BaseController {
             disabled: !allowPopulate(/^receiver.*/, Query.project),
           });
 
-        if (Query.project) TransactionListQuery.project(Query.project);
+        const fromApi = ctx.router.request.headers.get("Authorization")
+          ?.startsWith("apiKey");
+
+        TransactionListQuery.project(
+          excludeFromProjection(
+            Query.project,
+            fromApi
+              ? ["digest", "senderPreviousBalance", "receiverPreviousBalance"]
+              : ["digest"],
+          ),
+        );
 
         return Response.data({
           totalCount: Query.includeTotalCount
@@ -617,7 +639,8 @@ export default class WalletController extends BaseController {
                 "Transaction",
                 hash(TransactionListBaseConditions),
               ],
-              () => TransactionModel.countDocuments(TransactionListBaseConditions),
+              () =>
+                TransactionModel.countDocuments(TransactionListBaseConditions),
               (await Env.number("GLOBAL_PAGINATION_COUNT_TTL")) * 1000,
             )
             : undefined,
