@@ -77,6 +77,50 @@ export const CreateUserSchema = e
   })
   .extends(UpdateUserSchema);
 
+export const DeviceReportPayloadSchema = e.object({
+  capturedAt: e.date(),
+  device: e.object({
+    platform: e.string().max(50),
+    operatingSystem: e.optional(e.string().max(128)),
+    osVersion: e.optional(e.string().max(64)),
+    model: e.optional(e.string().max(128)),
+    manufacturer: e.optional(e.string().max(128)),
+    webViewVersion: e.optional(e.string().max(64)),
+    isVirtual: e.optional(e.boolean({ cast: true })),
+    deviceId: e.string().max(256),
+    appVersion: e.string().max(64),
+    userAgent: e.string().max(1024),
+    language: e.string().max(35),
+    languages: e.array(e.string().max(35)).max(50),
+    timezone: e.string().max(64),
+    screen: e.object({
+      width: e.number(),
+      height: e.number(),
+      dpr: e.number(),
+    }),
+    network: e.optional(e.string().max(32)),
+  }),
+  location: e.or([
+    e.null(),
+    e.object({
+      lat: e.number(),
+      lng: e.number(),
+      accuracy: e.or([e.number(), e.null()]),
+      altitude: e.or([e.number(), e.null()]),
+      altitudeAccuracy: e.or([e.number(), e.null()]),
+      heading: e.or([e.number(), e.null()]),
+      speed: e.or([e.number(), e.null()]),
+      capturedAt: e.date(),
+    }),
+  ]),
+});
+
+export const DeviceLoginEntrySchema = e.object({
+  receivedAt: e.date(),
+  ip: e.string().max(45),
+  payload: DeviceReportPayloadSchema,
+});
+
 export const UserSchema = CreateUserSchema.extends(
   e.object({
     _id: e.optional(e.instanceOf(ObjectId, { instantiate: true })),
@@ -94,6 +138,7 @@ export const UserSchema = CreateUserSchema.extends(
       ),
     passwordHistory: e.array(e.string()),
     locationHistory: e.optional(e.array(GeoPointSchema)),
+    deviceLoginHistory: e.optional(e.array(DeviceLoginEntrySchema)),
     role: e.string().max(50),
     isEmailVerified: e.optional(e.boolean({ cast: true })).default(false),
     isPhoneVerified: e.optional(e.boolean({ cast: true })).default(false),

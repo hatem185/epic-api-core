@@ -27,6 +27,7 @@ import { MongoTransaction, ObjectId } from "mongo";
 import verifyHuman from "@Middlewares/verifyHuman.ts";
 import {
   CreateUserSchema,
+  DeviceReportPayloadSchema,
   EmailValidator,
   PasswordValidator,
   PhoneValidator,
@@ -35,6 +36,7 @@ import {
   UserModel,
   UserReferenceValidator,
 } from "@Models/user.ts";
+import { GeoPointSchema } from "@Models/location.ts";
 import { CollaboratorModel } from "@Models/collaborator.ts";
 import { AccountModel } from "@Models/account.ts";
 import { OauthAppModel } from "@Models/oauthApp.ts";
@@ -269,13 +271,21 @@ export default class UsersController extends BaseController {
 
   @Patch("/me/")
   public update(route: IRoute) {
-    // Define Body Schema
-    const BodySchema = e.partial(UpdateUserSchema, { nullish: true });
+    // Extend the profile schema with transport-only fields the app may send
+    const BodySchema = e.partial(
+      UpdateUserSchema.extends(
+        e.object({
+          geoPoint: e.optional(GeoPointSchema),
+          deviceLog: e.optional(DeviceReportPayloadSchema),
+        }),
+      ),
+      { nullish: true },
+    );
 
     return Versioned.add("1.0.0", {
       shape: () => ({
         body: BodySchema.toSample(),
-        return: responseValidator(e.partial(UserModel.getSchema())).toSample(),
+        return: responseValidator(e.partial(UpdateUserSchema)).toSample(),
       }),
       handler: async (ctx: IRequestContext<RouterContext<string>>) => {
         if (!ctx.router.state.auth) ctx.router.throw(Status.Unauthorized);
@@ -286,10 +296,47 @@ export default class UsersController extends BaseController {
           { name: `${route.scope}.body` },
         );
 
-        // Update user
-        await UserModel.updateOne(ctx.router.state.auth.userId, Body);
+        const { deviceLog, geoPoint, ...profileFields } = Body;
 
-        return Response.data(Body);
+        // deno-lint-ignore no-explicit-any
+        const updatePush: Record<string, any> = {};
+
+        // Legacy geoPoint support for older app versions
+        if (geoPoint) {
+          updatePush.locationHistory = { $each: [geoPoint], $slice: -10 };
+        }
+
+        // Store device log entry (best-effort, rate-limited to 1/min per user)
+        if (deviceLog) {
+          const userId = ctx.router.state.auth.userId;
+          const count = await Store.incr(`deviceLogPatch:${userId}`, {
+            expiresInMs: 60_000,
+          });
+
+          if (count <= 1) {
+            const ip = (
+              ctx.router.request.headers.get("x-forwarded-for")
+                ?.split(",")[0]
+                .trim() ?? ctx.router.request.ip
+            ).slice(0, 45);
+
+            updatePush.deviceLoginHistory = {
+              $each: [{ receivedAt: new Date(), ip, payload: deviceLog }],
+              $slice: -100,
+            };
+          }
+        }
+
+        // deno-lint-ignore no-explicit-any
+        const update: Record<string, any> = {};
+        if (Object.keys(profileFields).length) update.$set = profileFields;
+        if (Object.keys(updatePush).length) update.$push = updatePush;
+
+        if (Object.keys(update).length) {
+          await UserModel.updateOne(ctx.router.state.auth.userId, update);
+        }
+
+        return Response.data(profileFields);
       },
     });
   }
@@ -607,7 +654,9 @@ export default class UsersController extends BaseController {
           account: AccountModel.getSchema(),
         }).extends(e.omit(CollaboratorModel.getSchema(), ["account"])),
       ),
-    }).extends(e.omit(UserModel.getSchema(), ["collaborates"]));
+    }).extends(
+      e.omit(UserModel.getSchema(), ["collaborates", "deviceLoginHistory"]),
+    );
 
     return Versioned.add("1.0.0", {
       shape: () => ({
@@ -664,6 +713,7 @@ export default class UsersController extends BaseController {
             password: 0,
             passwordHistory: 0,
             passkeys: 0,
+            deviceLoginHistory: 0,
           })
           .sort(Query.sort)
           .skip(Query.offset)
@@ -722,6 +772,7 @@ export default class UsersController extends BaseController {
             "passkeys",
             "fcmDeviceTokens",
             "collaborates",
+            "deviceLoginHistory",
           ])),
         })).toSample(),
       }),
@@ -744,6 +795,7 @@ export default class UsersController extends BaseController {
             "passkeys.deviceType": 0,
             "passkeys.backedUp": 0,
             fcmDeviceTokens: 0,
+            deviceLoginHistory: 0,
           })
           .populate(
             "collaborates",

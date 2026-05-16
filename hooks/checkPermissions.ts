@@ -122,6 +122,7 @@ export default {
               "passkeys.deviceType": 0,
               "passkeys.backedUp": 0,
               collaborates: 0,
+              deviceLoginHistory: 0,
             });
 
             if (!User || User.isBlocked) {
