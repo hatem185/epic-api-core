@@ -15,6 +15,8 @@
     "Please provide a different phone!": "يرجى تقديم رقم هاتف مختلف!",
     "You didn't initiate a challenge or it is expired!": "لم تقم ببدء التحدي أو انتهت صلاحيته!",
     "Passkey credentials verification has failed!": "فشل التحقق من بيانات اعتماد مفتاح المرور!",
-    "Passkey is already enabled!": "مفتاح المرور تم تمكينه بالفعل!"
+    "Passkey is already enabled!": "مفتاح المرور تم تمكينه بالفعل!",
+    "You received money!": "لقد استلمت قيمة مالية!",
+    "You have received {{amount}} {{currency}} from {{fromName}}.": "لقد استلمت {{amount}} {{currency}} من {{fromName}}."
   }
 }

@@ -484,8 +484,11 @@ export default () => {
             const payload = {
               title: event.detail.ctx.router.t("You received money!"),
               body: event.detail.ctx.router.t(
-                `You have received {{amount}} <span style="text-transform:uppercase">{{currency}}</span> from {{fromName}}.`,
-                metadata,
+                `You have received {{amount}} {{currency}} from {{fromName}}.`,
+                {
+                  ...metadata, 
+                  currency: metadata.currency.toUpperCase()
+                },
               ),
             };
 
