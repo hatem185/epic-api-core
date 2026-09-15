@@ -73,9 +73,9 @@ export const logoutQueue = Queue.prepare<{
   accountId: string;
 }>("activityEvents:oauth.logout");
 
-export const updateVerifiedStatusQueue = Queue.prepare<{
-  userId: string;
-}>("activityEvents:users.updateVerifiedStatus");
+// export const updateVerifiedStatusQueue = Queue.prepare<{
+//   userId: string;
+// }>("activityEvents:users.updateVerifiedStatus");
 
 export const verifyUserQueue = Queue.prepare<{
   sessionId?: string;
@@ -160,17 +160,17 @@ export default () => {
     failedCap: 5000,
   });
 
-  updateVerifiedStatusQueue.subscribe({
-    handler: async (task) => {
-      const { userId } = task.details.data;
+  // updateVerifiedStatusQueue.subscribe({
+  //   handler: async (task) => {
+  //     const { userId } = task.details.data;
 
-      await syncUserVerifiedRole(userId).catch(() => {
-        // Do nothing...
-      });
-    },
-    completedCap: 1000,
-    failedCap: 5000,
-  });
+  //     await syncUserVerifiedRole(userId).catch(() => {
+  //       // Do nothing...
+  //     });
+  //   },
+  //   completedCap: 1000,
+  //   failedCap: 5000,
+  // });
 
   verifyUserQueue.subscribe({
     handler: async (task) => {
@@ -654,7 +654,7 @@ export default () => {
 
   return async () => {
     await logoutQueue.unsubscribe();
-    await updateVerifiedStatusQueue.unsubscribe();
+    // await updateVerifiedStatusQueue.unsubscribe();
     await verifyUserQueue.unsubscribe();
     await updatePasswordQueue.unsubscribe();
   };

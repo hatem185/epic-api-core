@@ -51,8 +51,9 @@ import UploadsController from "@Controllers/uploads.ts";
 import { Database } from "@Database";
 import { allowPopulate } from "@Helpers/utils.ts";
 import {
+  syncUserVerifiedRole,
   updatePasswordQueue,
-  updateVerifiedStatusQueue,
+  // updateVerifiedStatusQueue,
   verifyUserQueue,
 } from "@Jobs/activityEvents.ts";
 
@@ -450,9 +451,11 @@ export default class UsersController extends BaseController {
           isEmailVerified: Verified,
         });
 
-        await updateVerifiedStatusQueue.enqueue({
-          data: { userId: ctx.router.state.auth.userId },
-        });
+        // await updateVerifiedStatusQueue.enqueue({
+        //   data: { userId: ctx.router.state.auth.userId },
+        // });
+
+        await syncUserVerifiedRole(ctx.router.state.auth.userId);
 
         return Response.data({
           type: IdentificationMethod.EMAIL,
@@ -499,9 +502,11 @@ export default class UsersController extends BaseController {
           isPhoneVerified: Verified,
         });
 
-        await updateVerifiedStatusQueue.enqueue({
-          data: { userId: ctx.router.state.auth.userId },
-        });
+        // await updateVerifiedStatusQueue.enqueue({
+        //   data: { userId: ctx.router.state.auth.userId },
+        // });
+
+        await syncUserVerifiedRole(ctx.router.state.auth.userId);
 
         return Response.data({
           type: IdentificationMethod.PHONE,
