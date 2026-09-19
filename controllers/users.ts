@@ -52,9 +52,9 @@ import { Database } from "@Database";
 import { allowPopulate } from "@Helpers/utils.ts";
 import {
   syncUserVerifiedRole,
-  updatePasswordQueue,
+  // updatePasswordQueue,
   // updateVerifiedStatusQueue,
-  verifyUserQueue,
+  // verifyUserQueue,
 } from "@Jobs/activityEvents.ts";
 
 @Controller("/users/", { group: "User", name: "users" })
@@ -404,10 +404,15 @@ export default class UsersController extends BaseController {
           },
         );
 
-        await updatePasswordQueue.enqueue({
-          data: {
-            verifyTokenPayload: ctx.router.state.verifyTokenPayload,
-          },
+        // await updatePasswordQueue.enqueue({
+        //   data: {
+        //     verifyTokenPayload: ctx.router.state.verifyTokenPayload,
+        //   },
+        // });
+
+        
+        await OauthSessionModel.deleteMany({
+          createdBy: new ObjectId(Payload.userId),
         });
 
         return Response.true();
@@ -621,14 +626,24 @@ export default class UsersController extends BaseController {
 
         await UsersController.verify(Body.method, Payload.userId);
 
-        await verifyUserQueue.enqueue({
-          data: {
-            sessionId: ctx.router.state.sessionInfo?.claims.sessionId,
-            secretId: ctx.router.state.sessionInfo?.claims.secretId,
-            accountId: ctx.router.state.auth?.accountId,
-            verifyTokenPayload: ctx.router.state.verifyTokenPayload,
-          },
-        });
+        // await verifyUserQueue.enqueue({
+        //   data: {
+        //     sessionId: ctx.router.state.sessionInfo?.claims.sessionId,
+        //     secretId: ctx.router.state.sessionInfo?.claims.secretId,
+        //     accountId: ctx.router.state.auth?.accountId,
+        //     verifyTokenPayload: ctx.router.state.verifyTokenPayload,
+        //   },
+        // });
+
+        await syncUserVerifiedRole(Payload.userId);
+
+        // Invalidate Cached Session
+        await Store.del(
+          `checkPermissions:${
+            ctx.router.state.sessionInfo?.claims.sessionId ??
+              ctx.router.state.sessionInfo?.claims.secretId
+          }:${ctx.router.state.auth?.accountId}`,
+        );
 
         return Response.true();
       },

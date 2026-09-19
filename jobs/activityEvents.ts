@@ -6,15 +6,15 @@ import {
   IRequestContext,
   Response,
 } from "@Core/common/mod.ts";
-import e from "validator";
-import { ObjectId } from "mongo";
+// import e from "validator";
+// import { ObjectId } from "mongo";
 import { UserModel } from "@Models/user.ts";
-import { OauthSessionModel } from "@Models/oauthSession.ts";
+// import { OauthSessionModel } from "@Models/oauthSession.ts";
 // import { IdentificationMethod } from "@Controllers/usersIdentification.ts";
 import { TTransactionOutput } from "@Models/transaction.ts";
-import { Store } from "@Core/common/store.ts";
+// import { Store } from "@Core/common/store.ts";
 import { getNotify } from "@Lib/notifications.ts";
-import { Queue } from "queue";
+// import { Queue } from "queue";
 
 export const isUserVerified = async (input: {
   isEmailVerified?: boolean;
@@ -67,26 +67,26 @@ export const syncUserVerifiedRole = async (
   };
 };
 
-export const logoutQueue = Queue.prepare<{
-  sessionId?: string;
-  secretId?: string;
-  accountId: string;
-}>("activityEvents:oauth.logout");
+// export const logoutQueue = Queue.prepare<{
+//   sessionId?: string;
+//   secretId?: string;
+//   accountId: string;
+// }>("activityEvents:oauth.logout");
 
 // export const updateVerifiedStatusQueue = Queue.prepare<{
 //   userId: string;
 // }>("activityEvents:users.updateVerifiedStatus");
 
-export const verifyUserQueue = Queue.prepare<{
-  sessionId?: string;
-  secretId?: string;
-  accountId?: string;
-  verifyTokenPayload: string;
-}>("activityEvents:users.verify");
+// export const verifyUserQueue = Queue.prepare<{
+//   sessionId?: string;
+//   secretId?: string;
+//   accountId?: string;
+//   verifyTokenPayload: string;
+// }>("activityEvents:users.verify");
 
-export const updatePasswordQueue = Queue.prepare<{
-  verifyTokenPayload: string;
-}>("activityEvents:users.updatePassword");
+// export const updatePasswordQueue = Queue.prepare<{
+//   verifyTokenPayload: string;
+// }>("activityEvents:users.updatePassword");
 
 export default () => {
   // Events.listen<{
@@ -147,18 +147,18 @@ export default () => {
   //   },
   // );
 
-  logoutQueue.subscribe({
-    handler: async (task) => {
-      const { sessionId, secretId, accountId } = task.details.data;
+  // logoutQueue.subscribe({
+  //   handler: async (task) => {
+  //     const { sessionId, secretId, accountId } = task.details.data;
 
-      // Invalidate Cached Session
-      await Store.del(
-        `checkPermissions:${sessionId ?? secretId}:${accountId}`,
-      );
-    },
-    completedCap: 1000,
-    failedCap: 5000,
-  });
+  //     // Invalidate Cached Session
+  //     await Store.del(
+  //       `checkPermissions:${sessionId ?? secretId}:${accountId}`,
+  //     );
+  //   },
+  //   completedCap: 1000,
+  //   failedCap: 5000,
+  // });
 
   // updateVerifiedStatusQueue.subscribe({
   //   handler: async (task) => {
@@ -172,66 +172,66 @@ export default () => {
   //   failedCap: 5000,
   // });
 
-  verifyUserQueue.subscribe({
-    handler: async (task) => {
-      try {
-        const {
-          sessionId,
-          secretId,
-          accountId,
-          verifyTokenPayload: verifyTokenPayloadData,
-        } = task.details.data;
+  // verifyUserQueue.subscribe({
+  //   handler: async (task) => {
+  //     try {
+  //       const {
+  //         sessionId,
+  //         secretId,
+  //         accountId,
+  //         verifyTokenPayload: verifyTokenPayloadData,
+  //       } = task.details.data;
 
-        const VerifyTokenPayload = await e
-          .object(
-            {
-              method: e.string(),
-              userId: e.string(),
-            },
-            { allowUnexpectedProps: true },
-          )
-          .validate(verifyTokenPayloadData);
+  //       const VerifyTokenPayload = await e
+  //         .object(
+  //           {
+  //             method: e.string(),
+  //             userId: e.string(),
+  //           },
+  //           { allowUnexpectedProps: true },
+  //         )
+  //         .validate(verifyTokenPayloadData);
 
-        await syncUserVerifiedRole(VerifyTokenPayload.userId);
+  //       await syncUserVerifiedRole(VerifyTokenPayload.userId);
 
-        // Invalidate Cached Session
-        await Store.del(
-          `checkPermissions:${sessionId ?? secretId}:${accountId}`,
-        );
-      } catch {
-        // Do nothing...
-      }
-    },
-    completedCap: 1000,
-    failedCap: 5000,
-  });
+  //       // Invalidate Cached Session
+  //       await Store.del(
+  //         `checkPermissions:${sessionId ?? secretId}:${accountId}`,
+  //       );
+  //     } catch {
+  //       // Do nothing...
+  //     }
+  //   },
+  //   completedCap: 1000,
+  //   failedCap: 5000,
+  // });
 
-  updatePasswordQueue.subscribe({
-    handler: async (task) => {
-      try {
-        const { verifyTokenPayload: verifyTokenPayloadData } =
-          task.details.data;
+  // updatePasswordQueue.subscribe({
+  //   handler: async (task) => {
+  //     try {
+  //       const { verifyTokenPayload: verifyTokenPayloadData } =
+  //         task.details.data;
 
-        const VerifyTokenPayload = await e
-          .object(
-            {
-              method: e.string(),
-              userId: e.string(),
-            },
-            { allowUnexpectedProps: true },
-          )
-          .validate(verifyTokenPayloadData);
+  //       const VerifyTokenPayload = await e
+  //         .object(
+  //           {
+  //             method: e.string(),
+  //             userId: e.string(),
+  //           },
+  //           { allowUnexpectedProps: true },
+  //         )
+  //         .validate(verifyTokenPayloadData);
 
-        await OauthSessionModel.deleteMany({
-          createdBy: new ObjectId(VerifyTokenPayload.userId),
-        });
-      } catch {
-        // Do nothing...
-      }
-    },
-    completedCap: 1000,
-    failedCap: 5000,
-  });
+  //       await OauthSessionModel.deleteMany({
+  //         createdBy: new ObjectId(VerifyTokenPayload.userId),
+  //       });
+  //     } catch {
+  //       // Do nothing...
+  //     }
+  //   },
+  //   completedCap: 1000,
+  //   failedCap: 5000,
+  // });
 
   // Events.listen<{
   //   ctx: IRequestContext<RouterContext<string>>;
@@ -653,9 +653,9 @@ export default () => {
   }
 
   return async () => {
-    await logoutQueue.unsubscribe();
+    // await logoutQueue.unsubscribe();
     // await updateVerifiedStatusQueue.unsubscribe();
-    await verifyUserQueue.unsubscribe();
-    await updatePasswordQueue.unsubscribe();
+    // await verifyUserQueue.unsubscribe();
+    // await updatePasswordQueue.unsubscribe();
   };
 };
