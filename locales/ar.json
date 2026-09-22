@@ -17,6 +17,10 @@
     "Passkey credentials verification has failed!": "فشل التحقق من بيانات اعتماد مفتاح المرور!",
     "Passkey is already enabled!": "مفتاح المرور تم تمكينه بالفعل!",
     "You received money!": "لقد استلمت قيمة مالية!",
-    "You have received {{amount}} {{currency}} from {{fromName}}.": "لقد استلمت {{amount}} {{currency}} من {{fromName}}."
+    "You have received {{amount}} {{currency}} from {{fromName}}.": "لقد استلمت {{amount}} {{currency}} من {{fromName}}.",
+    "lyd": "د.ل",
+    "LYD": "د.ل",
+    "usd": "دولار",
+    "USD": "دولار"
   }
 }

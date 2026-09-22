@@ -14,6 +14,7 @@ import { UserModel } from "@Models/user.ts";
 import { TTransactionOutput } from "@Models/transaction.ts";
 // import { Store } from "@Core/common/store.ts";
 import { getNotify } from "@Lib/notifications.ts";
+import { I18next } from "@I18n";
 // import { Queue } from "queue";
 
 export const isUserVerified = async (input: {
@@ -489,17 +490,21 @@ export default () => {
               account: Transaction.to.toString(),
             };
 
+            const User = await UserModel.findOne(Transaction.receiver).project({
+              fcmDeviceTokens: 1,
+              locale: 1,
+            });
+
+            // Translate for the receiver, not the request's language
+            const t = I18next.translator(User?.locale);
+
             const payload = {
-              title: event.detail.ctx.router.t("You received money!"),
-              body: event.detail.ctx.router.t(
-                `You have received {{amount}} <span style="text-transform:uppercase">{{currency}}</span> from {{fromName}}.`,
+              title: t("You received money!"),
+              body: t(
+                `You have received {{amount}} {{currency}} from {{fromName}}.`,
                 metadata,
               ),
             };
-
-            const User = await UserModel.findOne(Transaction.receiver).project({
-              fcmDeviceTokens: 1,
-            });
 
             const doPush = !!User?.fcmDeviceTokens?.length;
 
@@ -581,15 +586,21 @@ export default () => {
               account: Transaction.to.toString(),
             };
 
-            const payload = {
-              title: "You received money!",
-              body:
-                `You have received ${metadata.amount} <span style="text-transform:uppercase">${metadata.currency}</span> from ${metadata.fromName}.`,
-            };
-
             const User = await UserModel.findOne(Transaction.receiver).project({
               fcmDeviceTokens: 1,
+              locale: 1,
             });
+
+            // Translate for the receiver, not the request's language
+            const t = I18next.translator(User?.locale);
+
+            const payload = {
+              title: t("You received money!"),
+              body: t(
+                `You have received {{amount}} {{currency}} from {{fromName}}.`,
+                metadata,
+              ),
+            };
 
             const doPush = !!User?.fcmDeviceTokens?.length;
 
